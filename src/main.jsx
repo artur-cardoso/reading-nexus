@@ -289,21 +289,17 @@ function Dashboard({reading,future,completed,pagesRead,totalBooks,completionRate
 
 function Progression({level,xp,booksCompleted,pagesRead}) {
   const {current:progress,remaining,percent:xpPercent} = getLevelProgress(xp)
-  const character = level >= 50
-    ? {name:'Arquimago',rank:'LENDÁRIO',description:'O domínio máximo desta versão do Nexus.',icon:'✦',tone:'mage'}
-    : level >= 20
-      ? {name:'Imperador',rank:'ELITE',description:'Sua disciplina já construiu um império de conhecimento.',icon:'♛',tone:'emperor'}
-      : level >= 10
-        ? {name:'Vampiro',rank:'DESPERTADO',description:'Uma presença noturna, guiada pela sede de conhecimento.',icon:'☾',tone:'vampire'}
-        : {name:'Aprendiz',rank:'INICIANTE',description:'Toda grande jornada começa com a primeira página.',icon:'✧',tone:'apprentice'}
   const milestones = [
-    {level:1,name:'Aprendiz',description:'O início da jornada',icon:'✧',tone:'apprentice'},
-    {level:10,name:'Vampiro',description:'Desperta a noite',icon:'☾',tone:'vampire'},
-    {level:20,name:'Imperador',description:'Conquista seu império',icon:'♛',tone:'emperor'},
-    {level:50,name:'Arquimago',description:'Ápice desta versão',icon:'✦',tone:'mage'}
+    {level:1,name:'Aprendiz',description:'Toda grande jornada começa com uma página.',icon:'📘',tone:'apprentice',rank:'INICIANTE'},
+    {level:10,name:'Vampiro',description:'A sede de conhecimento desperta na noite.',icon:'🧛',tone:'vampire',rank:'DESPERTADO'},
+    {level:20,name:'Imperador',description:'Disciplina e constância erguem seu império.',icon:'👑',tone:'emperor',rank:'ELITE'},
+    {level:30,name:'Guardião',description:'Você protege o que ama e domina novas trilhas.',icon:'🛡️',tone:'guardian',rank:'VIGILANTE'},
+    {level:40,name:'Arcanjo',description:'Sua sabedoria ilumina caminhos desconhecidos.',icon:'🪽',tone:'archangel',rank:'ASCENDENTE'},
+    {level:50,name:'Arquimago',description:'O ápice: conhecimento transformado em magia.',icon:'🧙',tone:'mage',rank:'LENDÁRIO'}
   ]
+  const character = [...milestones].reverse().find(item => level >= item.level) || milestones[0]
   return <div className="progressionPage">
-    <section className={`characterHero card ${character.tone}`}>
+    <section className={`characterHero card pixelHero ${character.tone}`}>
       <div className="characterAura"/>
       <div className="characterCopy">
         <label>SEU PERSONAGEM ATUAL · {character.rank}</label>
@@ -311,7 +307,11 @@ function Progression({level,xp,booksCompleted,pagesRead}) {
         <p>{character.description}</p>
         <div className="characterLevel"><span>NÍVEL ATUAL</span><strong>{level}</strong><span className="xpPill">{xp.toLocaleString('pt-BR')} XP</span></div>
       </div>
-      <div className="characterSigil" aria-hidden="true"><span>{character.icon}</span><small>NEXUS</small></div>
+      <div className="pixelPortrait" role="img" aria-label={`Personagem pixel art: ${character.name}`}>
+        <span className="pixelSky"/><span className="pixelRune">{character.icon}</span>
+        <span className="pixelCharacter">{character.icon}</span>
+        <small>16-BIT · NEXUS</small>
+      </div>
     </section>
 
     <section className="card xpPanel">
@@ -322,11 +322,11 @@ function Progression({level,xp,booksCompleted,pagesRead}) {
     </section>
 
     <section className="card milestonesPanel">
-      <div className="sectionHead"><div><label>CAMINHO DE EVOLUÇÃO</label><h3>Marcos de personagem</h3><p>Continue lendo para revelar novas formas da sua jornada.</p></div><Trophy size={19}/></div>
-      <div className="milestoneGrid">{milestones.map(item => {
+      <div className="sectionHead"><div><label>CAMINHO DE EVOLUÇÃO</label><h3>Marcos de personagem</h3><p>Uma nova forma a cada 10 níveis da sua jornada.</p></div><Trophy size={19}/></div>
+      <div className="milestoneGrid pixelMilestones">{milestones.map(item => {
         const unlocked = level >= item.level
-        return <article className={`milestone ${item.tone} ${unlocked?'unlocked':'locked'}`} key={item.level}>
-          <div className="milestoneIcon">{unlocked ? item.icon : '🔒'}</div>
+        return <article className={`milestone pixelMilestone ${item.tone} ${unlocked?'unlocked':'locked'}`} key={item.level}>
+          <div className="pixelPortrait miniPixel" aria-hidden="true"><span className="pixelSky"/><span className="pixelRune">{item.icon}</span><span className="pixelCharacter">{item.icon}</span></div>
           <div className="milestoneLevel">NÍVEL {item.level}</div>
           <h4>{item.name}</h4>
           <p>{item.description}</p>
@@ -334,7 +334,7 @@ function Progression({level,xp,booksCompleted,pagesRead}) {
         </article>
       })}</div>
     </section>
-    <p className="progressionNote">Primeira versão: a tela já acompanha o XP e o nível atuais do Reading Nexus. Os personagens são marcos visuais; a regra de XP existente foi preservada.</p>
+    <p className="progressionNote">Os retratos usam uma estética pixelada inspirada em RPGs 16-bit. A regra atual de ganho de XP foi preservada.</p>
   </div>
 }
 
