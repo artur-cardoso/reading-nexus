@@ -69,3 +69,8 @@ Depois abra Settings > Pages e escolha GitHub Actions como fonte.
 - exportação/backup
 - páginas detalhadas por livro
 - refinamento visual e PWA
+
+
+## Diário
+
+Execute `supabase/migrations/20261008_book_entries.sql` no SQL Editor do Supabase uma vez para ativar o Diário privado de cada livro.
