@@ -105,3 +105,5 @@
 .progressionNote{color:#66748e;font-size:10px;line-height:1.6;margin:0 2px}
 @media(max-width:900px){.milestoneGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:720px){.characterHero{grid-template-columns:1fr;padding:22px;gap:22px}.characterSigil{width:135px;height:135px;grid-row:1;justify-self:start;margin-left:4px}.characterSigil>span{font-size:59px}.characterSigil small{bottom:19px}.characterCopy h2{font-size:34px}.xpPanel,.milestonesPanel{padding:16px}.milestoneGrid{gap:8px}.milestone{padding:11px}.milestoneIcon{height:58px;font-size:32px}.milestone h4{font-size:13px}.milestone p{font-size:9px}.xpNumbers strong{font-size:19px}}
+
+@media(max-width:720px){.side nav{grid-template-columns:repeat(5,minmax(0,1fr))}}
