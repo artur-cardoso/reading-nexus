@@ -64,6 +64,7 @@ function App() {
   const avg = rated.length ? (rated.reduce((s,b) => s + Number(b.rating || 0),0) / rated.length).toFixed(1) : '—'
   const xp = pages + completed.length * 120 + reading.reduce((s,b) => s + pct(b) * 2,0)
   const level = Math.floor(xp / 500) + 1
+  const tasteKey = completed.map(b => (b.rating || 0)).join('|')
 
   useEffect(() => {
     if (!books.length || !completed.length) { setRecommendations([]); return }
@@ -74,7 +75,7 @@ function App() {
       .catch(() => { if (!cancelled) setRecommendations([]) })
       .finally(() => { if (!cancelled) setRecommendLoading(false) })
     return () => { cancelled = true }
-  },[books.length, completed.length])
+  },[books.length, tasteKey])
 
   async function loadBooks() {
     const {data,error} = await supabase.from('books').select('*').order('updated_at',{ascending:false})
@@ -202,7 +203,7 @@ function App() {
       }
     </main>
 
-    {modal && <BookModal book={selected} close={()=>setModal(false)} save={saveBook}/>}
+    {modal && <BookModal book={selected} close={()=>setModal(false)} save={saveBook} notify={setToast}/>}
     {toast && <div className="toast">{toast}</div>}
   </div>
 }
@@ -264,7 +265,7 @@ function RatingStars({value=0,onChange,disabled=false}){return <div className={d
 function BookCard({book,update,remove,edit}){const advance=()=>{const next=book.status==='future'?'reading':'completed';update(book.id,{status:next,current_page:next==='completed'&&book.total_pages?book.total_pages:book.current_page,started_at:next!=='future'?(book.started_at||todayISO()):book.started_at,completed_at:next==='completed'?(book.completed_at||todayISO()):null})};return <article className="book"><Cover src={book.cover_url}/><div className="bookBody"><div className="meta"><span>{book.status==='completed'?'CONCLUÍDO':book.status==='reading'?'LENDO':'NA FILA'}</span>{book.status==='completed'&&<RatingStars value={book.rating||0} disabled/>}</div><h3>{book.title}</h3><p>{book.author}</p>{book.total_pages&&<><div className="progressText"><b>{pct(book)}%</b><span>{book.current_page||0}/{book.total_pages}</span></div><div className="bar"><i style={{width:pct(book)+'%'}}/></div></>}{(book.started_at||book.completed_at)&&<div className="dates">{book.started_at&&<span>Início: {dateBR(book.started_at)}</span>}{book.completed_at&&<span>Fim: {dateBR(book.completed_at)}</span>}</div>}{book.summary&&<div className="summary">{book.summary}</div>}<div className="actions"><button className="secondary" onClick={edit}>Editar</button>{book.status!=='completed'&&<button className="icon" title="Avançar status" onClick={advance}><CheckCircle2 size={17}/></button>}<button className="icon danger" onClick={()=>remove(book.id)}><X size={17}/></button></div></div></article>}
 function Empty({tab,onAdd}){return <div className="empty card"><div className="emptyIcon"><Trophy/></div><h2>{tab==='completed'?'Ainda não há conquistas aqui.':'Sua estante está esperando.'}</h2><p>Adicione um livro e comece a construir seu histórico.</p><button className="primary" onClick={onAdd}><Plus size={17}/> Adicionar livro</button></div>}
 
-function BookModal({book,close,save}){
+function BookModal({book,close,save,notify}){
   const [f,setF]=useState({title:'',author:'',isbn:'',cover_url:'',summary:'',wikipedia_url:'',total_pages:'',current_page:0,status:'future',priority:'normal',rating:'',notes:'',started_at:'',completed_at:'',...book})
   const [view,setView]=useState('details')
   const [entries,setEntries]=useState([])
@@ -287,7 +288,7 @@ function BookModal({book,close,save}){
     setEntryLoading(true)
     const payload={book_id:book.id,user_id:book.user_id,content:entryText.trim(),page_number:entryPage ? Number(entryPage) : null}
     const {data,error}=await supabase.from('book_entries').insert(payload).select('*').single()
-    if(error) setToastGlobal(error.code==='42P01'?'Execute a migration do Diário no Supabase para ativar este recurso.':error.message)
+    if(error) notify(error.code==='42P01'?'Execute a migração do Diário no Supabase para ativar este recurso.':error.message)
     else {setEntries(x=>[...x,data]);setEntryText('');setEntryPage('')}
     setEntryLoading(false)
   }
@@ -295,7 +296,7 @@ function BookModal({book,close,save}){
   async function deleteEntry(id){
     if(!confirm('Excluir esta entrada do diário?')) return
     const {error}=await supabase.from('book_entries').delete().eq('id',id)
-    if(error) setToastGlobal(error.message); else setEntries(x=>x.filter(e=>e.id!==id))
+    if(error) notify(error.message); else setEntries(x=>x.filter(e=>e.id!==id))
   }
 
   const modalStatusChange = value => setF(x=>({...x,status:value,rating:value==='completed'?x.rating:'',started_at:value!=='future'?(x.started_at||todayISO()):x.started_at,completed_at:value==='completed'?(x.completed_at||todayISO()):''}))
@@ -323,7 +324,6 @@ function BookModal({book,close,save}){
   </div>
 }
 
-function setToastGlobal(message){window.dispatchEvent(new CustomEvent('reading-nexus-toast',{detail:message}))}
 
 function Auth({authMode,setAuthMode,email,setEmail,password,setPassword,authMessage,auth}){return <div className="auth"><div className="authCard"><div className="authBrand"><div className="logo"><BookOpen/></div><b>Reading Nexus</b></div><label>SEU UNIVERSO DE LEITURA</label><h1>{authMode==='login'?'Bem-vindo de volta.':'Criar sua conta.'}</h1><p>Seu histórico acompanha você em qualquer lugar.</p><form onSubmit={auth}><input type="email" placeholder="Seu e-mail" value={email} onChange={e=>setEmail(e.target.value)} required/><input type="password" placeholder="Senha" value={password} onChange={e=>setPassword(e.target.value)} required minLength="6"/><button className="primary" type="submit"><LogIn size={17}/>{authMode==='login'?'Entrar':'Criar conta'}</button></form>{authMessage&&<div className="message">{authMessage}</div>}<button className="link" onClick={()=>setAuthMode(authMode==='login'?'signup':'login')}>{authMode==='login'?'Ainda não tenho uma conta':'Já tenho uma conta'}</button><small className="authNote">Depois da configuração inicial, mantenha o cadastro de novos usuários desativado.</small></div></div>}
 
