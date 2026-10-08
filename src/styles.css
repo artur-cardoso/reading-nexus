@@ -107,3 +107,34 @@
 @media(max-width:720px){.characterHero{grid-template-columns:1fr;padding:22px;gap:22px}.characterSigil{width:135px;height:135px;grid-row:1;justify-self:start;margin-left:4px}.characterSigil>span{font-size:59px}.characterSigil small{bottom:19px}.characterCopy h2{font-size:34px}.xpPanel,.milestonesPanel{padding:16px}.milestoneGrid{gap:8px}.milestone{padding:11px}.milestoneIcon{height:58px;font-size:32px}.milestone h4{font-size:13px}.milestone p{font-size:9px}.xpNumbers strong{font-size:19px}}
 
 @media(max-width:720px){.side nav{grid-template-columns:repeat(5,minmax(0,1fr))}}
+
+
+/* 16-bit character milestone portraits */
+.pixelHero{position:relative;overflow:hidden;min-height:270px;display:flex;align-items:center;justify-content:space-between;padding:28px 32px;gap:22px}
+.pixelHero .characterCopy{position:relative;z-index:2;max-width:590px}
+.pixelHero .characterCopy h2{font-size:36px;margin:8px 0}
+.pixelPortrait{position:relative;isolation:isolate;display:grid;place-items:center;width:190px;height:190px;flex:none;overflow:hidden;border:4px solid var(--pixel-accent,#6b91ff);background:#0b1228;box-shadow:0 0 0 4px #080b14,0 0 28px color-mix(in srgb,var(--pixel-accent,#6b91ff) 32%,transparent);image-rendering:pixelated}
+.pixelSky{position:absolute;inset:0;z-index:-2;background:linear-gradient(180deg,var(--pixel-sky,#10275a),#101222 75%)}
+.pixelSky:before,.pixelSky:after{content:"";position:absolute;left:0;right:0;height:30%;bottom:0;background:repeating-linear-gradient(90deg,transparent 0 13px,#060b19 13px 25px),linear-gradient(0deg,#070b16,transparent);clip-path:polygon(0 45%,12% 45%,12% 15%,23% 15%,23% 60%,38% 60%,38% 0,52% 0,52% 38%,66% 38%,66% 12%,80% 12%,80% 55%,100% 55%,100% 100%,0 100%)}
+.pixelSky:after{bottom:auto;top:10%;left:12%;right:12%;height:50%;opacity:.38;background:radial-gradient(circle,var(--pixel-accent,#6b91ff) 1px,transparent 2px);background-size:13px 13px;clip-path:none}
+.pixelRune{position:absolute;top:12px;right:12px;font-size:26px;filter:drop-shadow(0 0 8px var(--pixel-accent,#6b91ff))}
+.pixelCharacter{font-size:76px;filter:drop-shadow(4px 4px 0 #050713) drop-shadow(0 0 10px var(--pixel-accent,#6b91ff));image-rendering:pixelated;transform:translateY(-3px);text-shadow:3px 0 #101323,-3px 0 #101323,0 3px #101323,0 -3px #101323}
+.pixelPortrait small{position:absolute;bottom:0;left:0;right:0;padding:6px;background:#060a15dd;color:var(--pixel-accent,#6b91ff);font-size:8px;letter-spacing:.2em;text-align:center;font-weight:800}
+.pixelMilestones{grid-template-columns:repeat(3,minmax(0,1fr))}
+.pixelMilestone{position:relative;overflow:hidden;text-align:center;padding:15px 13px 17px;border-color:color-mix(in srgb,var(--pixel-accent,#6b91ff) 45%,#1b2740);background:linear-gradient(180deg,color-mix(in srgb,var(--pixel-sky,#10275a) 36%,#0d121f),#0b101b 58%)}
+.pixelMilestone:before{content:"";position:absolute;inset:5px;border:1px solid color-mix(in srgb,var(--pixel-accent,#6b91ff) 38%,transparent);pointer-events:none}
+.pixelMilestone .miniPixel{width:100%;height:130px;margin:0 auto 14px;border-width:3px;box-shadow:none}
+.pixelMilestone .miniPixel .pixelCharacter{font-size:54px}
+.pixelMilestone .miniPixel .pixelRune{font-size:17px}
+.pixelMilestone h4{font-family:Manrope;font-size:17px;margin:7px 0}
+.pixelMilestone p{font-size:11px;line-height:1.5;min-height:48px}
+.pixelMilestone .milestoneState{font-size:8px;letter-spacing:.08em}
+.pixelMilestone.locked{filter:saturate(.48);opacity:.62}
+.apprentice{--pixel-accent:#55b8ff;--pixel-sky:#102c62}
+.vampire{--pixel-accent:#ff4e76;--pixel-sky:#4a102b}
+.emperor{--pixel-accent:#f7c15e;--pixel-sky:#493017}
+.guardian{--pixel-accent:#5fe5a2;--pixel-sky:#103e3a}
+.archangel{--pixel-accent:#b18aff;--pixel-sky:#24145a}
+.mage{--pixel-accent:#43e7ff;--pixel-sky:#102b62}
+@media(max-width:900px){.pixelMilestones{grid-template-columns:repeat(2,minmax(0,1fr))}.pixelHero{padding:22px}.pixelPortrait{width:150px;height:165px}}
+@media(max-width:560px){.pixelHero{align-items:flex-start;flex-direction:column}.pixelHero .characterCopy h2{font-size:29px}.pixelHero>.pixelPortrait{align-self:center;width:100%;height:180px}.pixelMilestones{grid-template-columns:1fr 1fr}.pixelMilestone{padding:11px 8px}.pixelMilestone .miniPixel{height:110px}.pixelMilestone h4{font-size:15px}.pixelMilestone p{font-size:10px}.pixelMilestone .milestoneState{font-size:7px}}
