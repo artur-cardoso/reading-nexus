@@ -16,6 +16,13 @@ const demoBooks = [
 ]
 
 const pct = b => b.total_pages ? Math.min(100, Math.round(Number(b.current_page || 0) / Number(b.total_pages) * 100)) : 0
+const XP_PER_LEVEL = 500
+const getLevelProgress = xp => ({
+  level: Math.floor(Math.max(0, Number(xp) || 0) / XP_PER_LEVEL) + 1,
+  current: Math.max(0, Number(xp) || 0) % XP_PER_LEVEL,
+  remaining: XP_PER_LEVEL - (Math.max(0, Number(xp) || 0) % XP_PER_LEVEL),
+  percent: ((Math.max(0, Number(xp) || 0) % XP_PER_LEVEL) / XP_PER_LEVEL) * 100
+})
 const todayISO = () => {
   const d = new Date()
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0')
@@ -71,7 +78,7 @@ function App() {
   const rated = completed.filter(b => Number(b.rating || 0) > 0)
   const avg = rated.length ? (rated.reduce((s,b) => s + Number(b.rating || 0),0) / rated.length).toFixed(1) : '—'
   const xp = pages + completed.length * 120 + reading.reduce((s,b) => s + pct(b) * 2,0)
-  const level = Math.floor(xp / 500) + 1
+  const {level} = getLevelProgress(xp)
   const tasteKey = completed.map(b => (b.rating || 0)).join('|')
 
   useEffect(() => {
@@ -186,7 +193,7 @@ function App() {
       </div>
       <nav>{nav.map(([id,label,I]) => <button className={tab===id?'nav active':'nav'} onClick={()=>setTab(id)} key={id}><I size={18}/><span>{label}</span><em>{id==='reading'?reading.length:id==='future'?future.length:id==='completed'?completed.length:''}</em></button>)}</nav>
       <div className="sideBottom">
-        <div className="level"><span>Nível {level}</span><b>{xp} XP</b><div className="bar"><i style={{width:(xp%500)/5+'%'}}/></div><small>{500-xp%500} XP para o próximo nível</small></div>
+        <div className="level"><span>Nível {level}</span><b>{xp} XP</b><div className="bar"><i style={{width:getLevelProgress(xp).percent+'%'}}/></div><small>{getLevelProgress(xp).remaining} XP para o próximo nível</small></div>
         <div className="user"><CircleUserRound size={19}/><span>{session?.user?.email || 'Modo demonstração'}</span></div>
         {supabaseConfigured && <button className="ghost" onClick={()=>supabase.auth.signOut()}><LogOut size={15}/> Sair</button>}
       </div>
@@ -276,13 +283,12 @@ function Dashboard({reading,future,completed,pagesRead,totalBooks,completionRate
       : <div className="recommendEmpty"><Sparkles size={22}/><span>Ainda não encontrei sugestões suficientes. Avalie mais livros para refinar seu perfil.</span></div>}
     </section>
 
-    <div className="achievement"><div><label>PROGRESSÃO</label><h3>{level < 2 ? 'Comece sua jornada' : 'Você está construindo um histórico'}</h3><p>Nível {level} · {xp} XP. Cada página registrada conta para sua evolução.</p></div><div className="badge"><Trophy size={20}/><span>{500-(xp%500)} XP para o próximo nível</span></div></div>
+    <div className="achievement"><div><label>PROGRESSÃO</label><h3>{level < 2 ? 'Comece sua jornada' : 'Você está construindo um histórico'}</h3><p>Nível {level} · {xp} XP. Cada página registrada conta para sua evolução.</p></div><div className="badge"><Trophy size={20}/><span>{getLevelProgress(xp).remaining} XP para o próximo nível</span></div></div>
   </div>
 }
 
 function Progression({level,xp,booksCompleted,pagesRead}) {
-  const progress = xp % 500
-  const remaining = 500 - progress
+  const {current:progress,remaining,percent:xpPercent} = getLevelProgress(xp)
   const character = level >= 50
     ? {name:'Arquimago',rank:'LENDÁRIO',description:'O domínio máximo desta versão do Nexus.',icon:'✦',tone:'mage'}
     : level >= 20
@@ -311,7 +317,7 @@ function Progression({level,xp,booksCompleted,pagesRead}) {
     <section className="card xpPanel">
       <div className="sectionHead"><div><label>SUA EXPERIÊNCIA</label><h3>Próximo nível</h3><p>Você ganha XP conforme avança nas leituras.</p></div><div className="xpLevelBadge">NÍVEL {level}</div></div>
       <div className="xpNumbers"><strong>{progress.toLocaleString('pt-BR')} <span>/ 500 XP</span></strong><b>{remaining.toLocaleString('pt-BR')} XP restantes</b></div>
-      <div className="xpTrack" role="img" aria-label={`${Math.round(progress/5)}% da experiência para o próximo nível`}><span style={{width:(progress/5)+'%'}}/></div>
+      <div className="xpTrack" role="img" aria-label={`${Math.round(xpPercent)}% da experiência para o próximo nível`}><span style={{width:xpPercent+'%'}}/></div>
       <div className="xpFoot"><span><BookOpen size={14}/> Páginas lidas: {pagesRead.toLocaleString('pt-BR')}</span><span><CheckCircle2 size={14}/> Livros concluídos: {booksCompleted}</span></div>
     </section>
 
