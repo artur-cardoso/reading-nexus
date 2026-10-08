@@ -172,9 +172,10 @@ function App() {
     ['dashboard','Visão geral',Compass],
     ['reading','Estou lendo',BookOpen],
     ['future','Futuras leituras',Bookmark],
-    ['completed','Concluídos',CheckCircle2]
+    ['completed','Concluídos',CheckCircle2],
+    ['progression','Progressão',Trophy]
   ]
-  const title = {dashboard:'Visão geral',reading:'Estou lendo',future:'Futuras leituras',completed:'Livros concluídos'}[tab]
+  const title = {dashboard:'Visão geral',reading:'Estou lendo',future:'Futuras leituras',completed:'Livros concluídos',progression:'Sua jornada'}[tab]
   const list = tab==='reading' ? reading : tab==='future' ? future : tab==='completed' ? completed : []
 
   return <div className="shell">
@@ -193,7 +194,7 @@ function App() {
 
     <main>
       <header>
-        <div><label>CENTRAL DE LEITURA</label><h1>{tab==='dashboard' ? 'Seu universo de livros.' : title}</h1><p>{tab==='dashboard' ? 'Tudo o que está acontecendo na sua biblioteca, em um só lugar.' : tab==='reading' ? 'Acompanhe exatamente onde você parou.' : tab==='future' ? 'Sua fila de próximas aventuras.' : 'Seu histórico e suas avaliações.'}</p></div>
+        <div><label>CENTRAL DE LEITURA</label><h1>{tab==='dashboard' ? 'Seu universo de livros.' : title}</h1><p>{tab==='dashboard' ? 'Tudo o que está acontecendo na sua biblioteca, em um só lugar.' : tab==='reading' ? 'Acompanhe exatamente onde você parou.' : tab==='future' ? 'Sua fila de próximas aventuras.' : tab==='completed' ? 'Seu histórico e suas avaliações.' : 'Acompanhe sua experiência, seus níveis e os próximos marcos.'}</p></div>
         <button className="primary" onClick={()=>{setSelected(null);setModal(true)}}><Plus size={18}/> Adicionar livro</button>
       </header>
 
@@ -205,7 +206,9 @@ function App() {
 
       {tab==='dashboard'
         ? <Dashboard {...{reading,future,completed,pagesRead,totalBooks,completionRate,avg,level,xp,recommendations,recommendLoading,setTab,setSelected,setModal}}/>
-        : list.length
+        : tab==='progression'
+          ? <Progression level={level} xp={xp} booksCompleted={completed.length} pagesRead={pagesRead}/>
+          : list.length
           ? <div className="grid">{list.map(b=><BookCard key={b.id} book={b} update={updateBook} remove={removeBook} edit={()=>{setSelected(b);setModal(true)}}/>)}</div>
           : <Empty tab={tab} onAdd={()=>{setSelected(null);setModal(true)}}/>
       }
@@ -274,6 +277,58 @@ function Dashboard({reading,future,completed,pagesRead,totalBooks,completionRate
     </section>
 
     <div className="achievement"><div><label>PROGRESSÃO</label><h3>{level < 2 ? 'Comece sua jornada' : 'Você está construindo um histórico'}</h3><p>Nível {level} · {xp} XP. Cada página registrada conta para sua evolução.</p></div><div className="badge"><Trophy size={20}/><span>{500-(xp%500)} XP para o próximo nível</span></div></div>
+  </div>
+}
+
+function Progression({level,xp,booksCompleted,pagesRead}) {
+  const progress = xp % 500
+  const remaining = 500 - progress
+  const character = level >= 50
+    ? {name:'Arquimago',rank:'LENDÁRIO',description:'O domínio máximo desta versão do Nexus.',icon:'✦',tone:'mage'}
+    : level >= 20
+      ? {name:'Imperador',rank:'ELITE',description:'Sua disciplina já construiu um império de conhecimento.',icon:'♛',tone:'emperor'}
+      : level >= 10
+        ? {name:'Vampiro',rank:'DESPERTADO',description:'Uma presença noturna, guiada pela sede de conhecimento.',icon:'☾',tone:'vampire'}
+        : {name:'Aprendiz',rank:'INICIANTE',description:'Toda grande jornada começa com a primeira página.',icon:'✧',tone:'apprentice'}
+  const milestones = [
+    {level:1,name:'Aprendiz',description:'O início da jornada',icon:'✧',tone:'apprentice'},
+    {level:10,name:'Vampiro',description:'Desperta a noite',icon:'☾',tone:'vampire'},
+    {level:20,name:'Imperador',description:'Conquista seu império',icon:'♛',tone:'emperor'},
+    {level:50,name:'Arquimago',description:'Ápice desta versão',icon:'✦',tone:'mage'}
+  ]
+  return <div className="progressionPage">
+    <section className={`characterHero card ${character.tone}`}>
+      <div className="characterAura"/>
+      <div className="characterCopy">
+        <label>SEU PERSONAGEM ATUAL · {character.rank}</label>
+        <h2>{character.name}</h2>
+        <p>{character.description}</p>
+        <div className="characterLevel"><span>NÍVEL ATUAL</span><strong>{level}</strong><span className="xpPill">{xp.toLocaleString('pt-BR')} XP</span></div>
+      </div>
+      <div className="characterSigil" aria-hidden="true"><span>{character.icon}</span><small>NEXUS</small></div>
+    </section>
+
+    <section className="card xpPanel">
+      <div className="sectionHead"><div><label>SUA EXPERIÊNCIA</label><h3>Próximo nível</h3><p>Você ganha XP conforme avança nas leituras.</p></div><div className="xpLevelBadge">NÍVEL {level}</div></div>
+      <div className="xpNumbers"><strong>{progress.toLocaleString('pt-BR')} <span>/ 500 XP</span></strong><b>{remaining.toLocaleString('pt-BR')} XP restantes</b></div>
+      <div className="xpTrack" role="img" aria-label={`${Math.round(progress/5)}% da experiência para o próximo nível`}><span style={{width:(progress/5)+'%'}}/></div>
+      <div className="xpFoot"><span><BookOpen size={14}/> Páginas lidas: {pagesRead.toLocaleString('pt-BR')}</span><span><CheckCircle2 size={14}/> Livros concluídos: {booksCompleted}</span></div>
+    </section>
+
+    <section className="card milestonesPanel">
+      <div className="sectionHead"><div><label>CAMINHO DE EVOLUÇÃO</label><h3>Marcos de personagem</h3><p>Continue lendo para revelar novas formas da sua jornada.</p></div><Trophy size={19}/></div>
+      <div className="milestoneGrid">{milestones.map(item => {
+        const unlocked = level >= item.level
+        return <article className={`milestone ${item.tone} ${unlocked?'unlocked':'locked'}`} key={item.level}>
+          <div className="milestoneIcon">{unlocked ? item.icon : '🔒'}</div>
+          <div className="milestoneLevel">NÍVEL {item.level}</div>
+          <h4>{item.name}</h4>
+          <p>{item.description}</p>
+          <span className="milestoneState">{unlocked ? 'DESBLOQUEADO' : `${item.level-level} níveis restantes`}</span>
+        </article>
+      })}</div>
+    </section>
+    <p className="progressionNote">Primeira versão: a tela já acompanha o XP e o nível atuais do Reading Nexus. Os personagens são marcos visuais; a regra de XP existente foi preservada.</p>
   </div>
 }
 
