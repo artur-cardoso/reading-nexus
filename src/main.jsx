@@ -60,6 +60,14 @@ function App() {
   const future = books.filter(b => b.status === 'future')
   const completed = books.filter(b => b.status === 'completed')
   const pages = books.reduce((s,b) => s + Number(b.current_page || 0), 0)
+  const pagesRead = books.reduce((sum,b) => {
+    if (b.status === 'future') return sum
+    const currentPage = Number(b.current_page || 0)
+    const totalPages = Number(b.total_pages || 0)
+    return sum + (b.status === 'completed' ? Math.max(currentPage,totalPages) : currentPage)
+  }, 0)
+  const totalBooks = books.length
+  const completionRate = totalBooks ? Math.round((completed.length / totalBooks) * 100) : 0
   const rated = completed.filter(b => Number(b.rating || 0) > 0)
   const avg = rated.length ? (rated.reduce((s,b) => s + Number(b.rating || 0),0) / rated.length).toFixed(1) : '—'
   const xp = pages + completed.length * 120 + reading.reduce((s,b) => s + pct(b) * 2,0)
@@ -196,7 +204,7 @@ function App() {
       </section>
 
       {tab==='dashboard'
-        ? <Dashboard {...{reading,future,completed,pages,avg,level,xp,recommendations,recommendLoading,setTab,setSelected,setModal}}/>
+        ? <Dashboard {...{reading,future,completed,pagesRead,totalBooks,completionRate,avg,level,xp,recommendations,recommendLoading,setTab,setSelected,setModal}}/>
         : list.length
           ? <div className="grid">{list.map(b=><BookCard key={b.id} book={b} update={updateBook} remove={removeBook} edit={()=>{setSelected(b);setModal(true)}}/>)}</div>
           : <Empty tab={tab} onAdd={()=>{setSelected(null);setModal(true)}}/>
@@ -208,7 +216,7 @@ function App() {
   </div>
 }
 
-function Dashboard({reading,future,completed,pages,avg,level,xp,recommendations,recommendLoading,setTab,setSelected,setModal}) {
+function Dashboard({reading,future,completed,pagesRead,totalBooks,completionRate,avg,level,xp,recommendations,recommendLoading,setTab,setSelected,setModal}) {
   const current = reading[0]
   const favorite = completed.slice().sort((a,b)=>Number(b.rating||0)-Number(a.rating||0))[0]
   const progress = current ? pct(current) : 0
@@ -219,6 +227,16 @@ function Dashboard({reading,future,completed,pages,avg,level,xp,recommendations,
       <Stat icon={CheckCircle2} label="Concluídos" value={completed.length}/>
       <Stat icon={Star} label="Nota média" value={avg}/>
     </div>
+
+    <section className="libraryProgress card" aria-label="Progresso da biblioteca">
+      <div className="sectionHead"><div><label>VISÃO DA BIBLIOTECA</label><h3>Seu progresso geral</h3><p>{totalBooks} {totalBooks === 1 ? 'livro cadastrado' : 'livros cadastrados'} · {completionRate}% concluído</p></div><div className="libraryCount"><BookOpen size={16}/><strong>{completed.length}/{totalBooks}</strong></div></div>
+      <div className="libraryBar" role="img" aria-label={`${completionRate}% dos livros concluídos`}><span style={{width:completionRate+'%'}}/></div>
+      <div className="libraryLegend">
+        <span><i className="legendDot doneDot"/>Concluídos <b>{completed.length}</b></span>
+        <span><i className="legendDot readingDot"/>Em andamento <b>{reading.length}</b></span>
+        <span><i className="legendDot futureDot"/>Na fila <b>{future.length}</b></span>
+      </div>
+    </section>
 
     <section className="overviewHero card">
       <div className="heroGlow"/>
@@ -242,7 +260,7 @@ function Dashboard({reading,future,completed,pages,avg,level,xp,recommendations,
 
       <section className="card tasteCard">
         <div className="sectionHead"><div><label>SEU PERFIL</label><h3>Identidade de leitor</h3></div><Sparkles size={18}/></div>
-        {favorite ? <><div className="tasteBook"><Cover src={favorite.cover_url}/><div><b>{favorite.title}</b><small>Seu livro mais bem avaliado</small><RatingStars value={favorite.rating||0} disabled/></div></div><div className="tasteStats"><span><strong>{pages}</strong><small>Páginas registradas</small></span><span><strong>Nível {level}</strong><small>{xp} XP acumulados</small></span></div></> :
+        {favorite ? <><div className="tasteBook"><Cover src={favorite.cover_url}/><div><b>{favorite.title}</b><small>Seu livro mais bem avaliado</small><RatingStars value={favorite.rating||0} disabled/></div></div><div className="tasteStats"><span><strong>{pagesRead.toLocaleString('pt-BR')}</strong><small>Páginas lidas (estimativa)</small></span><span><strong>Nível {level}</strong><small>{xp} XP acumulados</small></span></div></> :
         <div className="tasteEmpty"><Target size={25}/><p>Conclua e avalie seus primeiros livros para eu começar a entender seu gosto.</p></div>}
       </section>
     </div>
